@@ -237,6 +237,150 @@ class TestMoctaleSystem(unittest.TestCase):
         self.assertEqual(r2.status_code, 200)
         self.assertIn(b"The Intelligence Behind Moctale", r2.data)
 
+    # 8. Movie Poster Retrieval & Recovery Tests
+    def test_28_target_movies_poster_resolution(self):
+        """
+        Verify reliable poster resolution for all 10 target films specified in requirements:
+        1. Batman (1966) — TMDB ID 2661
+        2. G-Force (2009) — TMDB ID 19585
+        3. The Croods (2013) — TMDB ID 49519
+        4. Jimmy Neutron: Boy Genius (2001) — TMDB ID 12589
+        5. Minions (2015) — TMDB ID 211672
+        6. Inception (2010) — TMDB ID 27205
+        7. Pulp Fiction (1994) — TMDB ID 680
+        8. The Dark Knight (2008) — TMDB ID 155
+        9. Interstellar (2014) — TMDB ID 157336
+        10. Avatar (2009) — TMDB ID 19995
+        """
+        client = TMDBClient()
+        target_movies = [
+            (2661, "Batman", 1966),
+            (19585, "G-Force", 2009),
+            (49519, "The Croods", 2013),
+            (12589, "Jimmy Neutron: Boy Genius", 2001),
+            (211672, "Minions", 2015),
+            (27205, "Inception", 2010),
+            (680, "Pulp Fiction", 1994),
+            (155, "The Dark Knight", 2008),
+            (157336, "Interstellar", 2014),
+            (19995, "Avatar", 2009),
+        ]
+
+        for movie_id, title, year in target_movies:
+            meta = client.get_movie_metadata(movie_id, title=title, release_year=year)
+            self.assertIsNotNone(meta, f"Metadata null for {title} ({movie_id})")
+            poster_url = meta.get("poster_url", "")
+            
+            # Must NOT be placeholder
+            self.assertNotEqual(
+                poster_url, 
+                "/static/images/poster_placeholder.svg", 
+                f"Movie '{title}' ({movie_id}) returned fallback placeholder instead of verified poster"
+            )
+            
+            # Must be valid TMDB image URL
+            self.assertTrue(
+                poster_url.startswith("https://image.tmdb.org/t/p/w500/"),
+                f"Movie '{title}' poster URL '{poster_url}' is not a valid TMDB image URL"
+            )
+            
+            # Minions specifically must NOT return the known 404 path
+            if movie_id == 211672:
+                self.assertNotIn(
+                    "/dr0Fk1eha7EoxZ4amOH2OiFqd5.jpg",
+                    poster_url,
+                    "Minions returned the broken 404 poster path!"
+                )
+                self.assertIn(
+                    "/dr02BdCNAUPVU07aOodwPYv6HCf.jpg",
+                    poster_url,
+                    "Minions did not resolve to genuine verified poster path"
+                )
+
+    def test_29_invalid_candidate_recovery(self):
+        """Verify check_poster_usable accurately detects 404 broken URLs vs valid posters."""
+        client = TMDBClient()
+        # The broken Minions path that returns 404
+        broken_path = "/dr0Fk1eha7EoxZ4amOH2OiFqd5.jpg"
+        self.assertFalse(
+            client.check_poster_usable(broken_path),
+            "check_poster_usable should return False for 404 image path"
+        )
+        
+        # Valid verified Minions path
+        valid_path = "/dr02BdCNAUPVU07aOodwPYv6HCf.jpg"
+        self.assertTrue(
+            client.check_poster_usable(valid_path),
+            "check_poster_usable should return True for verified usable image path"
+        )
+
+    def test_30_reject_unrelated_movie_matching(self):
+        """Verify strict matching rejects unrelated titles or divergent release years (Req 10)."""
+        client = TMDBClient()
+        
+        # Completely different titles
+        self.assertFalse(
+            client._verify_movie_match("The Godfather", 1972, "Minions", "Minions", "2015-06-17"),
+            "Should reject completely different movie titles"
+        )
+        
+        # Same title but divergent release year (1966 vs 2022)
+        self.assertFalse(
+            client._verify_movie_match("Batman", 1966, "The Batman", "The Batman", "2022-03-04"),
+            "Should reject matching title with divergent release year (> 1 year difference)"
+        )
+        
+        # Matching title and release year
+        self.assertTrue(
+            client._verify_movie_match("Minions", 2015, "Minions", "Minions", "2015-07-10"),
+            "Should accept matching title and release year"
+        )
+        
+        # Matching title with international release year delta of 1
+        self.assertTrue(
+            client._verify_movie_match("Inception", 2010, "Inception", "Inception", "2011-01-14"),
+            "Should accept matching title with +/- 1 year release delta"
+        )
+
+    def test_31_null_and_offline_fallback(self):
+        """Verify safe fallback placeholder is returned when both ID lookup and search fail."""
+        client = TMDBClient()
+        meta = client.get_movie_metadata(movie_id=None, title="XYZNonExistentRandomFilm9999", release_year=1901)
+        self.assertEqual(meta["poster_url"], "/static/images/poster_placeholder.svg")
+        self.assertIsNone(meta["backdrop_url"])
+
+    def test_32_search_movies_enriched_with_posters(self):
+        """Verify /api/search and search_movies enrich results with valid poster_url."""
+        results = recommender.search_movies("Batman", limit=5)
+        self.assertGreater(len(results), 0)
+        for r in results:
+            self.assertIn("poster_url", r)
+            self.assertTrue(len(r["poster_url"]) > 0)
+        
+        # Check that Batman 1966 has verified poster
+        batman_1966 = next((r for r in results if r["movie_id"] == 2661), None)
+        if batman_1966:
+            self.assertEqual(
+                batman_1966["poster_url"],
+                "https://image.tmdb.org/t/p/w500/zzoPxWHnPa0eyfkMLgwbNvdEcVF.jpg"
+            )
+
+    def test_33_flask_api_target_movie_endpoints(self):
+        """Verify GET /api/movie/<id> returns resolved posters for target movies via Flask."""
+        # Test Minions (211672)
+        r_minions = self.client.get("/api/movie/211672")
+        self.assertEqual(r_minions.status_code, 200)
+        data_minions = r_minions.get_json()
+        self.assertTrue(data_minions["success"])
+        self.assertIn("/dr02BdCNAUPVU07aOodwPYv6HCf.jpg", data_minions["movie"]["poster_url"])
+
+        # Test Batman 1966 (2661)
+        r_batman = self.client.get("/api/movie/2661")
+        self.assertEqual(r_batman.status_code, 200)
+        data_batman = r_batman.get_json()
+        self.assertTrue(data_batman["success"])
+        self.assertIn("/zzoPxWHnPa0eyfkMLgwbNvdEcVF.jpg", data_batman["movie"]["poster_url"])
+
 
 if __name__ == "__main__":
     unittest.main()

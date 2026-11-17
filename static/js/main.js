@@ -442,11 +442,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="spotlight-backdrop" ${backdropStyle}></div>
         <div class="spotlight-inner">
           <img 
-            src="${movie.poster_url}" 
+            src="${movie.poster_url || '/static/images/poster_placeholder.svg'}" 
             alt="${escapeHtml(movie.title)}" 
             class="spotlight-poster"
             loading="lazy"
-            onerror="this.src='/static/images/poster_placeholder.svg';"
+            onerror="this.onerror=null; this.src='/static/images/poster_placeholder.svg';"
           />
           <div class="spotlight-details">
             <span class="spotlight-badge">Queried Film Profile</span>
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alt="${escapeHtml(movie.title)}" 
             class="card-poster-img"
             loading="lazy"
-            onerror="this.src='/static/images/poster_placeholder.svg';"
+            onerror="this.onerror=null; this.src='/static/images/poster_placeholder.svg';"
           />
           ${ratingBadge}
           ${matchBadge}
@@ -626,6 +626,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function populateAndShowModal(movie) {
     modalPoster.src = movie.poster_url || '/static/images/poster_placeholder.svg';
     modalPoster.alt = movie.title;
+    modalPoster.onerror = function() {
+      this.onerror = null;
+      this.src = '/static/images/poster_placeholder.svg';
+    };
     
     if (movie.backdrop_url) {
       modalBackdrop.style.backgroundImage = `url('${movie.backdrop_url}')`;

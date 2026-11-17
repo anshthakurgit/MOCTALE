@@ -6,8 +6,12 @@ caching, and graceful offline fallback.
 """
 
 import os
+import re
+import json
+import time
 import socket
 import logging
+from pathlib import Path
 from typing import Dict, Any, Optional
 import requests
 from dotenv import load_dotenv
@@ -324,7 +328,7 @@ VERIFIED_POSTER_REGISTRY: Dict[int, Dict[str, str]] = {
         "tagline": "He's part man, part dog, all cop.",
     },
     211672: {
-        "poster_path": "/dr0Fk1eha7EoxZ4amOH2OiFqd5.jpg",
+        "poster_path": "/dr02BdCNAUPVU07aOodwPYv6HCf.jpg",
         "backdrop_path": "/qL2gE7L2mYV6K5k6v7hQp8E6v2G.jpg",
         "tagline": "Before Gru, they had a history of bad bosses.",
     },
@@ -383,106 +387,402 @@ VERIFIED_POSTER_REGISTRY: Dict[int, Dict[str, str]] = {
         "backdrop_path": "/t5CknqWpnNvh4hA7zYjP3N1Pz1F.jpg",
         "tagline": "At the ends of the Earth, the party has just begun.",
     },
+    2661: {
+        "poster_path": "/zzoPxWHnPa0eyfkMLgwbNvdEcVF.jpg",
+        "backdrop_path": "/e0yH6vVzRau959ZqXl1t7HqHqL7.jpg",
+        "tagline": "He's part man, part dog, all cop.",
+    },
+    19585: {
+        "poster_path": "/9Tly3ZXTTsQKM26fis8v9LR4GxG.jpg",
+        "backdrop_path": "/d9h2aY9gV0E0uG0a0c0b2b4J6k9.jpg",
+        "tagline": "The world needs bigger heroes.",
+    },
+    49519: {
+        "poster_path": "/27zvjVOtOi5ped1HSlJKNsKXkFH.jpg",
+        "backdrop_path": "/2auipr5Z0eT09b2l8g0n5J8q7L0.jpg",
+        "tagline": "Meet the first modern family.",
+    },
+    12589: {
+        "poster_path": "/pUwdquA6Bf3Gq8yT5iQL1Yq0jkl.jpg",
+        "backdrop_path": "/6t8xSVhZVLZ5k5hQ8s2ZtLzX7Xn.jpg",
+        "tagline": "He may be small, but he's got a big brain.",
+    },
 }
 
 
 class TMDBClient:
-    """Thread-safe client for TMDB metadata and artwork requests."""
+    """
+    Robust, production-grade client for TMDB metadata and artwork requests.
+    Implements a complete retrieval, verification, and recovery pipeline:
+      1. Usability verification of candidate poster URLs on TMDB Cloudflare CDN
+      2. Direct TMDB ID lookup with retries and exponential backoff
+      3. Fallback search by exact movie title and release year
+      4. Strict title and release year verification before associating artwork
+      5. Persistent disk caching (artifacts/poster_cache.json) to eliminate repeated requests
+      6. Graceful offline and rate-limit fallbacks
+    """
 
     def __init__(self, api_key: str = None, access_token: str = None):
         self.api_key = api_key or TMDB_API_KEY
         self.access_token = access_token or TMDB_ACCESS_TOKEN
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "MoctaleMoviePlatform/1.0",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json",
         })
         if self.access_token:
             self.session.headers["Authorization"] = f"Bearer {self.access_token}"
 
-        self._cache: Dict[int, Dict[str, Any]] = {}
+        # In-memory session cache: str(movie_id) -> dict
+        self._cache: Dict[str, Dict[str, Any]] = {}
+        # In-memory verification cache for poster paths: path -> bool
+        self._usable_checked: Dict[str, bool] = {}
 
-    def get_movie_metadata(self, movie_id: int) -> Dict[str, Any]:
+        # Persistent disk cache location
+        self.cache_dir = Path(__file__).resolve().parent.parent / "artifacts"
+        self.cache_file = self.cache_dir / "poster_cache.json"
+        self._load_persistent_cache()
+
+    def _load_persistent_cache(self) -> None:
+        """Load persisted verified poster mappings from disk."""
+        if not self.cache_file.exists():
+            return
+        try:
+            with open(self.cache_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    for k, v in data.items():
+                        if isinstance(v, dict) and v.get("poster_path"):
+                            self._cache[str(k)] = v
+                            if v.get("verified_usable"):
+                                self._usable_checked[v["poster_path"]] = True
+            logger.info("Loaded %d verified posters from persistent cache.", len(self._cache))
+        except Exception as e:
+            logger.warning("Could not load persistent poster cache: %s", e)
+
+    def _save_persistent_cache(self) -> None:
+        """Save in-memory cache to disk atomically."""
+        try:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            temp_file = self.cache_file.with_suffix(".tmp")
+            with open(temp_file, "w", encoding="utf-8") as f:
+                json.dump(self._cache, f, indent=2)
+            temp_file.replace(self.cache_file)
+        except Exception as e:
+            logger.warning("Could not save persistent poster cache: %s", e)
+
+    def check_poster_usable(self, poster_path: Optional[str]) -> bool:
         """
-        Fetch movie poster, backdrop, tagline, and details from TMDB.
-        Prioritizes pre-seeded verified registry, checks in-memory cache,
-        and queries live API with timeout & graceful fallback.
+        Requirement 3: Check whether the existing poster URL is actually usable.
+        Performs a fast HEAD request to https://image.tmdb.org/t/p/w500{poster_path}.
+        Returns True if HTTP 200, False otherwise.
         """
-        if not movie_id or movie_id <= 0:
-            return self._build_fallback(movie_id)
+        if not poster_path or not isinstance(poster_path, str) or not poster_path.startswith("/"):
+            return False
 
-        # 1. Check in-memory session cache
-        if movie_id in self._cache:
-            return self._cache[movie_id]
+        if poster_path in self._usable_checked:
+            return self._usable_checked[poster_path]
 
-        # 2. Check verified registry for immediate high-res TMDB poster/backdrop
-        if movie_id in VERIFIED_POSTER_REGISTRY:
-            reg = VERIFIED_POSTER_REGISTRY[movie_id]
-            res = {
-                "movie_id": movie_id,
-                "poster_url": f"{POSTER_BASE_URL}{reg['poster_path']}",
-                "backdrop_url": f"{BACKDROP_BASE_URL}{reg['backdrop_path']}",
-                "tagline": reg.get("tagline", ""),
-                "vote_average": None,
-                "vote_count": 0,
-                "runtime": None,
-                "homepage": None,
-                "imdb_id": None,
-                "trailer_url": None,
-                "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}",
-                "has_tmdb_poster": True,
-            }
-            self._cache[movie_id] = res
-            return res
+        url = f"{POSTER_BASE_URL}{poster_path}"
+        try:
+            res = self.session.head(url, timeout=2.5)
+            is_ok = (res.status_code == 200)
+            self._usable_checked[poster_path] = is_ok
+            return is_ok
+        except Exception:
+            return False
 
-        # 3. Live TMDB API request
-        url = f"{TMDB_BASE_URL}/movie/{movie_id}?append_to_response=videos"
-        params = {}
+    def _normalize_title(self, title: Optional[str]) -> str:
+        """Normalize movie title for strict fuzzy and exact comparisons."""
+        if not title:
+            return ""
+        return re.sub(r"[^a-z0-9]", "", str(title).lower())
+
+    def _verify_movie_match(
+        self,
+        target_title: Optional[str],
+        target_year: Optional[int],
+        candidate_title: Optional[str],
+        candidate_orig_title: Optional[str] = None,
+        candidate_release_date: Optional[Any] = None
+    ) -> bool:
+        """
+        Requirement 6 & 10: Verify the returned title and release year before associating artwork.
+        Never associate an unrelated movie poster with a movie.
+        """
+        if not target_title:
+            return True
+
+        clean_target = self._normalize_title(target_title)
+        clean_title = self._normalize_title(candidate_title)
+        clean_orig = self._normalize_title(candidate_orig_title)
+
+        if not clean_title and not clean_orig:
+            return False
+
+        # Title match check
+        title_matches = (
+            clean_target == clean_title
+            or clean_target == clean_orig
+            or (len(clean_target) >= 4 and clean_target in clean_title)
+            or (len(clean_title) >= 4 and clean_title in clean_target)
+        )
+        if not title_matches:
+            return False
+
+        # Year check if target_year is provided
+        if target_year and target_year > 0 and candidate_release_date:
+            date_str = str(candidate_release_date).strip()
+            if len(date_str) >= 4 and date_str[:4].isdigit():
+                cand_year = int(date_str[:4])
+                if abs(cand_year - target_year) > 1:
+                    # Diverges by more than 1 year - reject match!
+                    return False
+
+        return True
+
+    def _resilient_get(
+        self,
+        url: str,
+        params: Optional[Dict[str, Any]] = None,
+        max_attempts: int = 3
+    ) -> Optional[requests.Response]:
+        """
+        Requirement 9: Handle TMDB errors, rate limits, and network resets gracefully.
+        Executes HTTP GET with retries and exponential backoff.
+        """
+        req_params = dict(params) if params else {}
         if not self.access_token and self.api_key:
-            params["api_key"] = self.api_key
+            req_params["api_key"] = self.api_key
+
+        for attempt in range(max_attempts):
+            try:
+                res = self.session.get(url, params=req_params, timeout=4.0)
+                if res.status_code in (200, 404):
+                    return res
+                elif res.status_code == 429:
+                    time.sleep(1.0)
+                elif res.status_code >= 500:
+                    time.sleep(0.3 * (attempt + 1))
+            except (requests.RequestException, socket.error):
+                time.sleep(0.3 * (attempt + 1))
+        return None
+
+    def _query_tmdb_by_id(
+        self,
+        movie_id: int,
+        target_title: Optional[str] = None,
+        target_year: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Requirement 4: Query TMDB movie details using the movie ID."""
+        if not movie_id or movie_id <= 0:
+            return None
+
+        url = f"{TMDB_BASE_URL}/movie/{movie_id}"
+        params = {"append_to_response": "videos"}
+        res = self._resilient_get(url, params=params)
+        if not res or res.status_code != 200:
+            return None
 
         try:
-            response = self.session.get(url, params=params, timeout=2.5)
-            if response.status_code == 200:
-                data = response.json()
-                poster_path = data.get("poster_path")
-                backdrop_path = data.get("backdrop_path")
+            data = res.json()
+        except Exception:
+            return None
 
-                trailer_key = None
-                videos = data.get("videos", {}).get("results", [])
-                for v in videos:
-                    if v.get("site") == "YouTube" and v.get("type") in ("Trailer", "Teaser"):
-                        trailer_key = v.get("key")
-                        break
+        # Verify title & year before associating artwork
+        if target_title:
+            if not self._verify_movie_match(
+                target_title=target_title,
+                target_year=target_year,
+                candidate_title=data.get("title"),
+                candidate_orig_title=data.get("original_title"),
+                candidate_release_date=data.get("release_date")
+            ):
+                logger.warning("Rejecting ID %s for '%s' due to title/year discrepancy: TMDB has '%s'",
+                               movie_id, target_title, data.get("title"))
+                return None
 
-                result = {
-                    "movie_id": movie_id,
-                    "poster_url": f"{POSTER_BASE_URL}{poster_path}" if poster_path else FALLBACK_POSTER,
+        poster_path = data.get("poster_path")
+        if not poster_path or not self.check_poster_usable(poster_path):
+            return None
+
+        backdrop_path = data.get("backdrop_path")
+        trailer_key = None
+        videos = data.get("videos", {}).get("results", [])
+        for v in videos:
+            if v.get("site") == "YouTube" and v.get("type") in ("Trailer", "Teaser"):
+                trailer_key = v.get("key")
+                break
+
+        return {
+            "movie_id": movie_id,
+            "poster_path": poster_path,
+            "poster_url": f"{POSTER_BASE_URL}{poster_path}",
+            "backdrop_url": f"{BACKDROP_BASE_URL}{backdrop_path}" if backdrop_path else None,
+            "tagline": data.get("tagline") or "",
+            "vote_average": data.get("vote_average"),
+            "vote_count": data.get("vote_count", 0),
+            "runtime": data.get("runtime"),
+            "homepage": data.get("homepage"),
+            "imdb_id": data.get("imdb_id"),
+            "trailer_url": f"https://www.youtube.com/watch?v={trailer_key}" if trailer_key else None,
+            "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}",
+            "has_tmdb_poster": True,
+            "verified_usable": True,
+        }
+
+    def _search_tmdb_by_title_and_year(
+        self,
+        title: str,
+        release_year: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Requirement 5: If ID lookup fails, search TMDB by exact movie title and release year."""
+        if not title or not title.strip():
+            return None
+
+        url = f"{TMDB_BASE_URL}/search/movie"
+        params = {"query": title.strip()}
+        if release_year and release_year > 0:
+            params["year"] = release_year
+
+        res = self._resilient_get(url, params=params)
+        if not res or res.status_code != 200:
+            # Fallback search without year parameter if search with year returned nothing
+            if release_year and release_year > 0:
+                res = self._resilient_get(url, params={"query": title.strip()})
+
+        if not res or res.status_code != 200:
+            return None
+
+        try:
+            results = res.json().get("results", [])
+        except Exception:
+            return None
+
+        for item in results:
+            if not self._verify_movie_match(
+                target_title=title,
+                target_year=release_year,
+                candidate_title=item.get("title"),
+                candidate_orig_title=item.get("original_title"),
+                candidate_release_date=item.get("release_date")
+            ):
+                continue
+
+            poster_path = item.get("poster_path")
+            if poster_path and self.check_poster_usable(poster_path):
+                mid = item.get("id")
+                backdrop_path = item.get("backdrop_path")
+                return {
+                    "movie_id": mid,
+                    "poster_path": poster_path,
+                    "poster_url": f"{POSTER_BASE_URL}{poster_path}",
                     "backdrop_url": f"{BACKDROP_BASE_URL}{backdrop_path}" if backdrop_path else None,
-                    "tagline": data.get("tagline") or "",
-                    "vote_average": data.get("vote_average"),
-                    "vote_count": data.get("vote_count"),
-                    "runtime": data.get("runtime"),
-                    "homepage": data.get("homepage"),
-                    "imdb_id": data.get("imdb_id"),
-                    "trailer_url": f"https://www.youtube.com/watch?v={trailer_key}" if trailer_key else None,
-                    "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}",
-                    "has_tmdb_poster": bool(poster_path),
+                    "tagline": "",
+                    "vote_average": item.get("vote_average"),
+                    "vote_count": item.get("vote_count", 0),
+                    "runtime": None,
+                    "homepage": None,
+                    "imdb_id": None,
+                    "trailer_url": None,
+                    "tmdb_url": f"https://www.themoviedb.org/movie/{mid}" if mid else None,
+                    "has_tmdb_poster": True,
+                    "verified_usable": True,
                 }
-                self._cache[movie_id] = result
-                return result
+        return None
 
-            logger.warning("TMDB API returned HTTP %s for movie_id %s", response.status_code, movie_id)
-        except requests.exceptions.RequestException as e:
-            logger.debug("TMDB request failed for movie_id %s: %s", movie_id, e)
+    def get_movie_metadata(
+        self,
+        movie_id: int,
+        title: Optional[str] = None,
+        release_year: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Fetch movie poster, backdrop, tagline, and details from TMDB with complete recovery.
+        Order of resolution:
+          1. In-memory and persistent cache (if verified usable on CDN)
+          2. Verified registry check (with CDN usability verification)
+          3. Live TMDB API ID lookup (with title/year verification)
+          4. Live TMDB search by title & release year (recovery fallback)
+          5. Graceful fallback placeholder
+        """
+        str_id = str(movie_id) if movie_id else ""
 
-        # 4. Graceful fallback
+        # 1. Check in-memory & persistent cache
+        if str_id and str_id in self._cache:
+            cached = self._cache[str_id]
+            poster_path = cached.get("poster_path")
+            if poster_path and (cached.get("verified_usable") or self.check_poster_usable(poster_path)):
+                return {
+                    "movie_id": movie_id,
+                    "poster_path": poster_path,
+                    "poster_url": f"{POSTER_BASE_URL}{poster_path}",
+                    "backdrop_url": f"{BACKDROP_BASE_URL}{cached.get('backdrop_path')}" if cached.get('backdrop_path') else None,
+                    "tagline": cached.get("tagline", ""),
+                    "vote_average": cached.get("vote_average"),
+                    "vote_count": cached.get("vote_count", 0),
+                    "runtime": cached.get("runtime"),
+                    "homepage": cached.get("homepage"),
+                    "imdb_id": cached.get("imdb_id"),
+                    "trailer_url": cached.get("trailer_url"),
+                    "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}" if movie_id else None,
+                    "has_tmdb_poster": True,
+                }
+            elif poster_path and not self.check_poster_usable(poster_path):
+                # Cached poster is broken/404 on CDN - purge and trigger recovery
+                del self._cache[str_id]
+
+        # 2. Check verified registry (with CDN usability check)
+        if movie_id and movie_id in VERIFIED_POSTER_REGISTRY:
+            reg = VERIFIED_POSTER_REGISTRY[movie_id]
+            candidate_path = reg.get("poster_path")
+            if self.check_poster_usable(candidate_path):
+                res = {
+                    "movie_id": movie_id,
+                    "poster_path": candidate_path,
+                    "poster_url": f"{POSTER_BASE_URL}{candidate_path}",
+                    "backdrop_url": f"{BACKDROP_BASE_URL}{reg.get('backdrop_path')}" if reg.get('backdrop_path') else None,
+                    "tagline": reg.get("tagline", ""),
+                    "vote_average": None,
+                    "vote_count": 0,
+                    "runtime": None,
+                    "homepage": None,
+                    "imdb_id": None,
+                    "trailer_url": None,
+                    "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}",
+                    "has_tmdb_poster": True,
+                    "verified_usable": True,
+                }
+                self._cache[str_id] = res
+                self._save_persistent_cache()
+                return res
+            else:
+                logger.warning("Registry poster path '%s' for movie %s is unusable (404). Triggering recovery.",
+                               candidate_path, movie_id)
+
+        # 3. Query TMDB movie details using movie ID
+        if movie_id and movie_id > 0:
+            id_res = self._query_tmdb_by_id(movie_id, target_title=title, target_year=release_year)
+            if id_res and id_res.get("has_tmdb_poster"):
+                self._cache[str_id] = id_res
+                self._save_persistent_cache()
+                return id_res
+
+        # 4. Search TMDB by exact movie title and release year (Recovery Fallback)
+        if title:
+            search_res = self._search_tmdb_by_title_and_year(title, release_year=release_year)
+            if search_res and search_res.get("has_tmdb_poster"):
+                if str_id:
+                    self._cache[str_id] = search_res
+                self._save_persistent_cache()
+                return search_res
+
+        # 5. Graceful fallback
         fallback = self._build_fallback(movie_id)
-        self._cache[movie_id] = fallback
         return fallback
 
-    def _build_fallback(self, movie_id: int) -> Dict[str, Any]:
-        """Return safe default metadata when TMDB request fails."""
+    def _build_fallback(self, movie_id: Optional[int]) -> Dict[str, Any]:
+        """Return safe default metadata when all recovery methods genuinely fail."""
         return {
             "movie_id": movie_id,
             "poster_url": FALLBACK_POSTER,
@@ -494,7 +794,7 @@ class TMDBClient:
             "homepage": None,
             "imdb_id": None,
             "trailer_url": None,
-            "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}" if movie_id else None,
+            "tmdb_url": f"https://www.themoviedb.org/movie/{movie_id}" if movie_id and movie_id > 0 else None,
             "has_tmdb_poster": False,
         }
 

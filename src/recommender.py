@@ -157,13 +157,18 @@ class MovieRecommender:
         results = []
         for idx in matched_indices[:limit]:
             row = self.movies_df.iloc[idx]
+            mid = int(row["movie_id"])
+            m_title = str(row["title"])
+            m_year = int(row["release_year"]) if pd.notnull(row["release_year"]) else None
+            tmdb_meta = tmdb_client.get_movie_metadata(mid, title=m_title, release_year=m_year)
             results.append({
-                "movie_id": int(row["movie_id"]),
-                "title": str(row["title"]),
-                "release_year": int(row["release_year"]),
+                "movie_id": mid,
+                "title": m_title,
+                "release_year": m_year,
                 "genres": row["genres_list"] if isinstance(row["genres_list"], list) else [],
                 "director": str(row["director"]),
                 "vote_average": float(row["vote_average"]) if pd.notnull(row["vote_average"]) else 0.0,
+                "poster_url": tmdb_meta.get("poster_url"),
             })
         return results
 
@@ -189,13 +194,18 @@ class MovieRecommender:
         }
 
         if enrich_tmdb:
-            tmdb_meta = tmdb_client.get_movie_metadata(movie_id)
+            tmdb_meta = tmdb_client.get_movie_metadata(
+                movie_id,
+                title=movie_data.get("title"),
+                release_year=movie_data.get("release_year")
+            )
             movie_data.update({
                 "poster_url": tmdb_meta.get("poster_url"),
                 "backdrop_url": tmdb_meta.get("backdrop_url"),
                 "tagline": tmdb_meta.get("tagline"),
                 "trailer_url": tmdb_meta.get("trailer_url"),
                 "tmdb_url": tmdb_meta.get("tmdb_url"),
+                "has_tmdb_poster": tmdb_meta.get("has_tmdb_poster", False),
             })
 
         return movie_data
@@ -273,11 +283,16 @@ class MovieRecommender:
             }
 
             if enrich_tmdb:
-                tmdb_meta = tmdb_client.get_movie_metadata(rec_id)
+                tmdb_meta = tmdb_client.get_movie_metadata(
+                    rec_id,
+                    title=str(rec_row["title"]),
+                    release_year=int(rec_row["release_year"]) if pd.notnull(rec_row["release_year"]) else None
+                )
                 rec_dict.update({
                     "poster_url": tmdb_meta.get("poster_url"),
                     "backdrop_url": tmdb_meta.get("backdrop_url"),
                     "tagline": tmdb_meta.get("tagline"),
+                    "has_tmdb_poster": tmdb_meta.get("has_tmdb_poster", False),
                 })
 
             recommendations.append(rec_dict)
@@ -340,7 +355,14 @@ class MovieRecommender:
             verified_ids = []
             seen = set()
 
-            # Curated registry movies with verified high-definition poster paths
+            # First priority: persistent cache movies with verified usable posters
+            cache_keys = [int(k) for k in tmdb_client._cache.keys() if str(k).isdigit() and tmdb_client._cache[k].get("poster_path")]
+            for mid in cache_keys:
+                if mid in self._id_to_idx and mid not in seen:
+                    verified_ids.append(mid)
+                    seen.add(mid)
+
+            # Second priority: curated registry movies with verified high-definition poster paths
             from src.tmdb_client import VERIFIED_POSTER_REGISTRY
             for mid in VERIFIED_POSTER_REGISTRY.keys():
                 if mid in self._id_to_idx and mid not in seen:
