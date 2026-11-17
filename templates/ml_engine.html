@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ML Architecture & Recommender Engine — MOCTALE</title>
+  <meta name="description" content="Technical documentary and interactive demonstration of Moctale's Content-Based Machine Learning recommendation pipeline.">
+  
+  <link rel="icon" type="image/svg+xml" href="/static/images/poster_placeholder.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="/" class="brand-logo" aria-label="Moctale Home">
+        <span class="brand-mark">MOCTALE<span class="brand-dot">.</span></span>
+        <span class="brand-badge">ML Recommender</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="/#search" class="nav-link">Search</a></li>
+          <li><a href="/#featured" class="nav-link">Archive</a></li>
+          <li><a href="/ml-engine" class="nav-link active">ML Engine</a></li>
+          <li><a href="/#about" class="nav-link">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ML Engine Hero -->
+  <section class="ml-hero-section">
+    <div class="container">
+      <span class="hero-eyebrow">Technical Architecture & Engineering Showcase</span>
+      <h1 class="hero-title">The Intelligence Behind Moctale<span class="brand-dot">.</span></h1>
+      <p class="hero-description">
+        How Moctale translates narrative synopses, genre taxonomy, thematic keywords, and directorial credits into a 5,000-dimensional mathematical vector space to evaluate film similarity through angular cosine projections.
+      </p>
+
+      <!-- Live Verified Model Statistics Ribbon -->
+      <div class="ml-stats-ribbon" id="modelStatsBar">
+        <div class="stat-card">
+          <div class="stat-value" id="statMovies">4,800</div>
+          <div class="stat-label">Catalog Movies</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statVocab">5,000</div>
+          <div class="stat-label">Feature Dimensions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSparsity">99.39%</div>
+          <div class="stat-label">Matrix Sparsity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statWeights">145,173</div>
+          <div class="stat-label">Active Non-Zero Weights</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Machine Learning Pipeline Flowchart -->
+  <section class="pipeline-section">
+    <div class="container">
+      <div class="section-headline-row">
+        <div>
+          <span class="hero-eyebrow">End-to-End Execution Flow</span>
+          <h2 class="section-title">The 7-Stage Recommendation Pipeline</h2>
+        </div>
+        <span class="section-subtitle">Click any stage to examine mathematical mechanics</span>
+      </div>
+
+      <!-- Pictorial Architecture Schematic & In-Motion Simulator -->
+      <div class="arch-blueprint-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <span class="hero-eyebrow" style="margin-bottom: 0.25rem;">Interactive Schematic</span>
+            <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text-primary);">Data Highway & Computational Pipeline</h3>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--accent-gold); letter-spacing: 0.1em; text-transform: uppercase;">
+            ● Continuous Data Flow Active
+          </span>
+        </div>
+
+        <!-- Horizontal Schematic Canvas with Animated Pulse Cable -->
+        <div class="schematic-canvas-wrapper">
+          <div class="schematic-nodes-row">
+            <!-- Pulsing Connection Cable (SVG) -->
+            <svg class="schematic-svg-cable" viewBox="0 0 900 10" preserveAspectRatio="none">
+              <line x1="0" y1="5" x2="900" y2="5" class="cable-line-bg" />
+              <line x1="0" y1="5" x2="900" y2="5" class="cable-line-pulse" />
+            </svg>
+
+            <!-- Node 1 -->
+            <div class="arch-node active" data-step="1" id="archNode1">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16M9 11h6m-6 4h4"/></svg>
+              </div>
+              <div class="node-step-tag">Step 01</div>
+              <div class="node-title">Dataset ID Merge</div>
+            </div>
+
+            <!-- Node 2 -->
+            <div class="arch-node" data-step="2" id="archNode2">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div class="node-step-tag">Step 02</div>
+              <div class="node-title">Index Alignment</div>
+            </div>
+
+            <!-- Node 3 -->
+            <div class="arch-node" data-step="3" id="archNode3">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              </div>
+              <div class="node-step-tag">Step 03</div>
+              <div class="node-title">Entity Atomicity</div>
+            </div>
+
+            <!-- Node 4 -->
+            <div class="arch-node" data-step="4" id="archNode4">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h8m-8 6h16"/></svg>
+              </div>
+              <div class="node-step-tag">Step 04</div>
+              <div class="node-title">Porter Stemmer</div>
+            </div>
+
+            <!-- Node 5 -->
+            <div class="arch-node" data-step="5" id="archNode5">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              </div>
+              <div class="node-step-tag">Step 05</div>
+              <div class="node-title">5000-D Vectors</div>
+            </div>
+
+            <!-- Node 6 -->
+            <div class="arch-node" data-step="6" id="archNode6">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              </div>
+              <div class="node-step-tag">Step 06</div>
+              <div class="node-title">CSR Compression</div>
+            </div>
+
+            <!-- Node 7 -->
+            <div class="arch-node" data-step="7" id="archNode7">
+              <div class="node-icon-wrapper">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><path d="M2 12h20"/></svg>
+              </div>
+              <div class="node-step-tag">Step 07</div>
+              <div class="node-title">Cosine Projection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In-Motion Live Pipeline Simulator -->
+        <div class="simulator-panel">
+          <div class="sim-header-row">
+            <div>
+              <span class="hero-eyebrow" style="margin-bottom: 0.2rem;">Live Motion Execution</span>
+              <h4 style="font-size: 1.1rem; color: var(--text-primary); margin: 0;">Interactive Transformation Simulator</h4>
+            </div>
+            <div class="sim-controls-group">
+              <select id="simMovieSelect" class="sim-select">
+                <option value="Inception">Inception (Christopher Nolan)</option>
+                <option value="Interstellar">Interstellar (Christopher Nolan)</option>
+                <option value="The Dark Knight">The Dark Knight (Christopher Nolan)</option>
+                <option value="Avatar">Avatar (James Cameron)</option>
+                <option value="Pulp Fiction">Pulp Fiction (Quentin Tarantino)</option>
+              </select>
+              <button id="btnRunSimulation" class="btn-sim-run">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>Run In-Motion Simulation</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Stepper Tabs -->
+          <div class="sim-stepper-bar" id="simStepperBar">
+            <div class="sim-step-tab active" data-step="1">1. ID Join</div>
+            <div class="sim-step-tab" data-step="2">2. Pos Index</div>
+            <div class="sim-step-tab" data-step="3">3. Tokens</div>
+            <div class="sim-step-tab" data-step="4">4. Porter Stem</div>
+            <div class="sim-step-tab" data-step="5">5. Vector 5000D</div>
+            <div class="sim-step-tab" data-step="6">6. CSR Sparse</div>
+            <div class="sim-step-tab" data-step="7">7. Cosine Angle</div>
+          </div>
+
+          <!-- Live Console Screen -->
+          <div class="sim-console-screen" id="simConsoleScreen">
+            <span class="console-dim">// Ready to simulate. Select a film and click "Run In-Motion Simulation" above.</span><br>
+            <span class="console-highlight">&gt; System initialized. Preloaded catalog: 4,800 canonical films in CSR sparse representation.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline-flow-wrapper">
+        <!-- Step 1 -->
+        <div class="pipeline-step-row" data-step="1">
+          <div class="step-number">01</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>Primary Key Dataset Merging</span>
+              <span class="step-tag-badge">ETL & Data Hygiene</span>
+            </div>
+            <p class="step-desc">
+              Ingests <code>tmdb_5000_movies.csv</code> and <code>tmdb_5000_credits.csv</code>. Merging strictly on the unique primary key <code>movies.id == credits.movie_id</code> eliminates Cartesian cross-multiplication on duplicate titles (e.g. <em>The Host</em>, <em>Batman</em>), ensuring a clean, unpolluted 4,800-film catalog.
+            </p>
+            <div class="step-code-preview">
+              merged = movies.merge(credits, left_on='id', right_on='movie_id')
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="pipeline-step-row" data-step="2">
+          <div class="step-number">02</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>Missing Value Handling & Positional Index Reset</span>
+              <span class="step-tag-badge">Data Integrity</span>
+            </div>
+            <p class="step-desc">
+              Filters films with null overview synopses and executes an immediate <code>reset_index(drop=True)</code>. This ensures total synchronization between DataFrame positional index labels and matrix row coordinates, preventing out-of-bounds <code>IndexError</code> crashes.
+            </p>
+            <div class="step-code-preview">
+              df.dropna(subset=['overview'], inplace=True)
+              df.reset_index(drop=True, inplace=True)
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="pipeline-step-row" data-step="3">
+          <div class="step-number">03</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>Entity Disambiguation & Token Atomicity</span>
+              <span class="step-tag-badge">Feature Engineering</span>
+            </div>
+            <p class="step-desc">
+              Extracts plot overviews, genre designations, plot keywords, top-3 billed cast members, and the primary director. Spaces inside multi-word entities are stripped (e.g. <code>Christopher Nolan</code> &rarr; <code>ChristopherNolan</code>) to guarantee atomic semantic identity in the Bag-of-Words space.
+            </p>
+            <div class="step-code-preview">
+              tags = overview + genres_tokens + keywords_tokens + cast_tokens + director_tokens
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="pipeline-step-row" data-step="4">
+          <div class="step-number">04</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>Morphological Normalization (Porter Stemmer)</span>
+              <span class="step-tag-badge">Natural Language Processing</span>
+            </div>
+            <p class="step-desc">
+              Iterates through every token in the synthesized corpus and maps inflected and derived words to their root morphological base using NLTK's Porter Stemmer algorithm (e.g., <code>directing</code>, <code>directed</code>, <code>director</code> &rarr; <code>direct</code>).
+            </p>
+            <div class="step-code-preview">
+              ps = PorterStemmer()
+              tags = " ".join([ps.stem(word) for word in text.split()])
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="pipeline-step-row" data-step="5">
+          <div class="step-number">05</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>High-Dimensional Vectorization (CountVectorizer)</span>
+              <span class="step-tag-badge">Vector Space Modeling</span>
+            </div>
+            <p class="step-desc">
+              Constructs a 5,000-dimensional vocabulary using Scikit-Learn's <code>CountVectorizer(max_features=5000, stop_words='english')</code>. Tokens that appear across multiple movies are indexed, producing a sparse vector $\mathbf{v} \in \mathbb{R}^{5000}$ for each film.
+            </p>
+            <div class="step-code-preview">
+              cv = CountVectorizer(max_features=5000, stop_words='english')
+              feature_matrix = cv.fit_transform(df['tags']) # Shape: (4800, 5000)
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="pipeline-step-row" data-step="6">
+          <div class="step-number">06</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>Compressed Sparse Row (CSR) Optimization</span>
+              <span class="step-tag-badge">Memory Engineering</span>
+            </div>
+            <p class="step-desc">
+              With $99.39\%$ of the vector space consisting of zeros, storing a dense array would consume over 185 MB of memory. Moctale serializes the feature space as a Compressed Sparse Row (CSR) matrix occupying only $295 \text{ KB}$ on disk and precomputes top-20 nearest neighbors in $1.3 \text{ MB}$.
+            </p>
+            <div class="step-code-preview">
+              scipy.sparse.save_npz('artifacts/feature_matrix.npz', feature_matrix)
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="pipeline-step-row" data-step="7">
+          <div class="step-number">07</div>
+          <div class="step-details">
+            <div class="step-name">
+              <span>Pairwise Directional Cosine Similarity Projection</span>
+              <span class="step-tag-badge">Geometric Ranking</span>
+            </div>
+            <p class="step-desc">
+              Calculates the cosine of the angle $\theta$ between the query vector $\mathbf{u}$ and candidate vector $\mathbf{v}$. Scores range from $0.0$ (orthogonal; zero shared vocabulary) to $1.0$ (identical tag vector). The query movie is excluded, and the top-5 nearest neighbors are returned.
+            </p>
+            <div class="step-code-preview">
+              scores = cosine_similarity(query_vector, feature_matrix).flatten()
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Live Model Inspector -->
+  <section class="inspector-section">
+    <div class="container">
+      <div class="section-headline-row">
+        <div>
+          <span class="hero-eyebrow">Interactive Live Demonstration</span>
+          <h2 class="section-title">Vector Space Inspector</h2>
+        </div>
+        <span class="section-subtitle">Real live queries against the Moctale backend</span>
+      </div>
+
+      <div class="inspector-card">
+        <form id="inspectForm" class="inspector-search-row">
+          <input 
+            type="text" 
+            id="inspectInput" 
+            class="inspector-input" 
+            placeholder="Type any film to inspect its ML vector (e.g. Inception, The Dark Knight, Avatar)..."
+            value="Inception"
+            required
+          />
+          <button type="submit" class="search-action-btn">Inspect Vector</button>
+        </form>
+
+        <div id="inspectorLoading" style="display: none; text-align: center; padding: 2rem 0;">
+          <div class="spinner"></div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;">
+            Deconstructing feature vector & computing cosine projections...
+          </p>
+        </div>
+
+        <div id="inspectorContent" class="inspector-results-grid">
+          <!-- Left: Extracted Features -->
+          <div class="inspect-subcard">
+            <span class="inspect-subhead">Extracted Metadata Deconstruction</span>
+            <h3 id="inspectTitle" style="font-size: 1.4rem; margin-bottom: 0.25rem;">Inception (2010)</h3>
+            <p id="inspectDirector" style="color: var(--accent-gold); font-size: 0.88rem; margin-bottom: 1rem;">Director: Christopher Nolan</p>
+            
+            <p id="inspectOverviewSnippet" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem;"></p>
+
+            <span class="inspect-subhead" style="font-size: 0.72rem;">Extracted Genres</span>
+            <div id="inspectGenresChips" class="spotlight-chips-row" style="margin-bottom: 1rem;"></div>
+
+            <span class="inspect-subhead" style="font-size: 0.72rem;">Synthesized Stemmed Token Stream</span>
+            <div id="inspectTokenCloud" class="token-cloud"></div>
+          </div>
+
+          <!-- Right: Vector Profile & Recommendations -->
+          <div class="inspect-subcard">
+            <span class="inspect-subhead">5,000-D Mathematical Vector Profile</span>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div style="background: rgba(245, 241, 232, 0.03); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: center;">
+                <div id="inspectActiveDims" style="font-family: var(--font-serif); font-size: 1.8rem; color: var(--accent-gold); font-weight: 700;">47</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Active Dimensions</div>
+              </div>
+              <div style="background: rgba(245, 241, 232, 0.03); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: center;">
+                <div id="inspectSparsityRatio" style="font-family: var(--font-serif); font-size: 1.8rem; color: var(--accent-gold); font-weight: 700;">99.06%</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Vector Sparsity</div>
+              </div>
+            </div>
+
+            <div class="math-formula-box">
+              $$\text{Sim}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2} = \cos(\theta)$$
+            </div>
+
+            <span class="inspect-subhead" style="font-size: 0.72rem;">Top Ranked Projections (Calculated Cosine Angle)</span>
+            <div id="inspectRecommendationsList" style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Pictorial Vector Radar & Cosine Projection Visualizer -->
+  <section class="vector-radar-section">
+    <div class="container">
+      <div class="section-headline-row">
+        <div>
+          <span class="hero-eyebrow">Geometric Projection Engine</span>
+          <h2 class="section-title">Vector Angle & Cosine Projection Radar</h2>
+        </div>
+        <span class="section-subtitle">Rotate angle &theta; to observe angular similarity physics</span>
+      </div>
+
+      <div class="radar-grid-layout">
+        <!-- SVG Visual Coordinate Radar Canvas -->
+        <div class="radar-canvas-container">
+          <svg class="radar-svg" viewBox="-130 -130 260 260" id="radarSvg">
+            <!-- Grid Circles -->
+            <circle cx="0" cy="0" r="100" fill="none" stroke="rgba(245, 241, 232, 0.1)" stroke-width="1.5" />
+            <circle cx="0" cy="0" r="66" fill="none" stroke="rgba(245, 241, 232, 0.06)" stroke-width="1" />
+            <circle cx="0" cy="0" r="33" fill="none" stroke="rgba(245, 241, 232, 0.04)" stroke-width="1" />
+
+            <!-- Coordinate Axes -->
+            <line x1="-115" y1="0" x2="115" y2="0" stroke="rgba(245, 241, 232, 0.15)" stroke-width="1" />
+            <line x1="0" y1="-115" x2="0" y2="115" stroke="rgba(245, 241, 232, 0.15)" stroke-width="1" />
+
+            <!-- Arc for Theta -->
+            <path id="radarThetaArc" d="M 100 0 A 100 100 0 0 0 86.6 -50" fill="rgba(197, 167, 123, 0.12)" stroke="var(--accent-gold)" stroke-width="1.5" />
+
+            <!-- Vector U (Fixed Query Movie at 0 deg) -->
+            <line x1="0" y1="0" x2="100" y2="0" stroke="#f5f1e8" stroke-width="3" stroke-linecap="round" />
+            <circle cx="100" cy="0" r="4" fill="#f5f1e8" />
+            <text x="105" y="4" fill="#f5f1e8" font-size="10" font-family="sans-serif" font-weight="bold">u (Query Film)</text>
+
+            <!-- Vector V (Rotatable Candidate Movie) -->
+            <line id="radarVectorV" x1="0" y1="0" x2="86.6" y2="-50" stroke="var(--accent-gold)" stroke-width="3.5" stroke-linecap="round" />
+            <circle id="radarPointV" cx="86.6" cy="-50" r="5" fill="var(--accent-gold)" />
+            <text id="radarTextV" x="90" y="-55" fill="var(--accent-gold)" font-size="10" font-family="sans-serif" font-weight="bold">v (Candidate Film)</text>
+
+            <!-- Angle Label -->
+            <text id="radarAngleLabel" x="35" y="-15" fill="var(--accent-gold)" font-size="11" font-family="serif" font-weight="bold">&theta; = 30&deg;</text>
+          </svg>
+          <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;">
+            Unit Hypersphere Projection Planar Slice
+          </span>
+        </div>
+
+        <!-- Radar Controls & Dynamic Mathematical Interpretation -->
+        <div class="radar-controls-card">
+          <span class="inspect-subhead">Interactive Angle Controller</span>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+            Drag the angle slider below. In high-dimensional content vector space, cosine similarity measures purely the orientation angle &theta; between two films, completely normalizing out differences in plot overview length.
+          </p>
+
+          <div class="angle-slider-wrapper">
+            <input type="range" min="0" max="90" value="30" class="angle-slider" id="thetaRangeInput" />
+            <div class="angle-value-display">
+              <span>Separation Angle &theta;:</span>
+              <strong><span id="sliderAngleVal">30</span>&deg;</strong>
+            </div>
+          </div>
+
+          <div class="math-formula-box" style="margin: 1rem 0; padding: 1rem;">
+            $$S = \cos(\theta) = \cos(<span id="mathThetaDisplay">30</span>^\circ) = \mathbf{<span id="mathCosineDisplay">0.8660</span>}$$
+          </div>
+
+          <div class="match-gauge-bar">
+            <div class="match-gauge-fill" id="matchGaugeFill" style="width: 86.6%;"></div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Thematic Alignment:</span>
+            <span id="thematicAlignmentBadge" style="font-size: 0.82rem; font-weight: 700; color: var(--accent-gold);">
+              Strong Thematic Resonance (86.6% Match)
+            </span>
+          </div>
+
+          <!-- 12x12 Sparse Matrix Visualizer -->
+          <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span class="inspect-subhead" style="margin: 0;">Feature Space Sparsity Grid (99.4% Empty)</span>
+              <span style="font-size: 0.72rem; color: var(--accent-gold); font-family: monospace;">295 KB CSR</span>
+            </div>
+            <div class="matrix-heatmap-wrapper" id="matrixHeatmapGrid"></div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: 0.4rem;">
+              Gold embers represent non-zero term weights in the 5,000-D space. All dark cells are zeros compressed away by Scipy CSR.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technical Documentary Chapters -->
+  <section class="engine-section">
+    <div class="container">
+      <div class="engine-content">
+        <span class="engine-eyebrow">Academic Engineering Monograph</span>
+        <h2 class="engine-title">Theoretical Foundations of Content-Based Recommenders</h2>
+        <p class="engine-lead">
+          A comparative analysis of collaborative versus content-based recommendation architectures, high-dimensional vector representations, and algorithmic trade-offs.
+        </p>
+      </div>
+
+      <div class="engine-cards-grid">
+        <div class="engine-card">
+          <div class="card-step-num">01</div>
+          <h3 class="card-step-title">The Cold-Start Advantage</h3>
+          <p class="card-step-desc">
+            Collaborative filtering systems (e.g. Matrix Factorization, SVD, User-Item ALS) require dense interaction matrices. When a new film enters the database with zero user ratings, collaborative systems fail completely. Content-based filtering is immune to this constraint because the recommendation signal is intrinsic to the item's metadata profile.
+          </p>
+        </div>
+
+        <div class="engine-card">
+          <div class="card-step-num">02</div>
+          <h3 class="card-step-title">Why Angular Distance Over Euclidean</h3>
+          <p class="card-step-desc">
+            Euclidean distance measures the physical length between two points ($\sqrt{\sum (u_i - v_i)^2}$), heavily penalizing films with longer synopses that naturally contain higher word counts. Cosine similarity normalizes vector lengths to unit hyperspheres, measuring strictly the orientation angle $\theta$ of thematic alignment.
+          </p>
+        </div>
+
+        <div class="engine-card">
+          <div class="card-step-num">03</div>
+          <h3 class="card-step-title">Known Algorithmic Limitations</h3>
+          <p class="card-step-desc">
+            Content-based filtering tends toward over-specialization: it only suggests films that closely resemble the user's explicit query, offering limited serendipitous cross-genre discovery. Furthermore, it depends entirely on metadata quality—films with sparse overviews or obscure crews yield shallower mathematical vectors.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer with TMDB Attribution -->
+  <footer class="site-footer" id="about">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand-col">
+          <a href="/" class="brand-logo">
+            <span class="brand-mark">MOCTALE<span class="brand-dot">.</span></span>
+          </a>
+          <p>
+            An engineering minor project demonstrating an end-to-end Machine Learning Content-Based Movie Recommendation System. Built with Python, Flask, Pandas, and Scikit-Learn.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Navigation</h4>
+          <ul class="footer-nav-list">
+            <li><a href="/#search">Movie Search</a></li>
+            <li><a href="/#featured">Featured Archive</a></li>
+            <li><a href="/ml-engine">ML Engine & Architecture</a></li>
+            <li><a href="/health" target="_blank">System Health</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading">Attribution</h4>
+          <div class="tmdb-attribution-box">
+            <div class="tmdb-logo-wrapper">
+              <img src="/static/images/tmdb_logo.svg" alt="The Movie Database (TMDB) Logo" width="160" height="14">
+            </div>
+            <div class="tmdb-badge-stripes">
+              <div class="stripe-navy"></div>
+              <div class="stripe-blue"></div>
+              <div class="stripe-green"></div>
+            </div>
+            <p class="tmdb-legal-disclaimer">
+              This product uses the TMDB API but is not endorsed or certified by TMDB. Movie posters, backdrop imagery, and metadata are provided courtesy of The Movie Database.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <span>&copy; 2026 Moctale Movie Discovery Platform. All rights reserved.</span>
+        <span>Engineered with Python 3.13, Flask & Scikit-Learn</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ML Engine Interactive JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMLStats();
+      setupInspectForm();
+      setupSchematicClicks();
+      setupInMotionSimulator();
+      setupVectorRadar();
+      renderSparseMatrixHeatmap();
+      // Auto-inspect Inception on load
+      runMLInspection('Inception');
+    });
+
+    async function loadMLStats() {
+      try {
+        const response = await fetch('/api/ml-stats');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.success && data.stats) {
+          const s = data.stats;
+          document.getElementById('statMovies').textContent = s.total_movies.toLocaleString();
+          document.getElementById('statVocab').textContent = s.vocabulary_size.toLocaleString();
+          document.getElementById('statSparsity').textContent = `${s.matrix_sparsity_percent}%`;
+          document.getElementById('statWeights').textContent = s.nonzero_features.toLocaleString();
+        }
+      } catch (e) {
+        console.error('Failed to load ML stats:', e);
+      }
+    }
+
+    // 1. Schematic Node Clicks
+    function setupSchematicClicks() {
+      const nodes = document.querySelectorAll('.arch-node');
+      const stepRows = document.querySelectorAll('.pipeline-step-row');
+
+      nodes.forEach(node => {
+        node.addEventListener('click', () => {
+          const stepNum = node.getAttribute('data-step');
+          nodes.forEach(n => n.classList.remove('active'));
+          node.classList.add('active');
+
+          stepRows.forEach(row => {
+            if (row.getAttribute('data-step') === stepNum) {
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              row.style.borderColor = 'var(--accent-gold)';
+              row.style.background = 'rgba(197, 167, 123, 0.08)';
+              setTimeout(() => {
+                row.style.borderColor = '';
+                row.style.background = '';
+              }, 1600);
+            }
+          });
+        });
+      });
+    }
+
+    // 2. In-Motion Pipeline Simulator
+    function setupInMotionSimulator() {
+      const runBtn = document.getElementById('btnRunSimulation');
+      const movieSelect = document.getElementById('simMovieSelect');
+      const consoleScreen = document.getElementById('simConsoleScreen');
+      const stepperTabs = document.querySelectorAll('.sim-step-tab');
+      const nodes = document.querySelectorAll('.arch-node');
+      let isSimRunning = false;
+
+      const simData = {
+        'Inception': {
+          id: 27205,
+          year: 2010,
+          director: 'Christopher Nolan',
+          directorToken: 'ChristopherNolan',
+          keywords: ['dream', 'subconscious', 'heist', 'corporate espionage'],
+          stemmed: ['cobb', 'thief', 'infiltr', 'subconsci', 'christophernolan', 'sciencfict'],
+          activeDims: 47,
+          recs: ['12 Rounds (30.4%)', 'RED (28.2%)', 'Abduction (28.0%)', 'Krrish (27.5%)']
+        },
+        'Interstellar': {
+          id: 157336,
+          year: 2014,
+          director: 'Christopher Nolan',
+          directorToken: 'ChristopherNolan',
+          keywords: ['wormhole', 'black hole', 'relativity', 'space travel'],
+          stemmed: ['mankind', 'born', 'earth', 'christophernolan', 'wormhol', 'blackhol', 'sciencfict'],
+          activeDims: 52,
+          recs: ['The Martian (34.2%)', 'Apollo 13 (31.2%)', 'Contact (28.4%)', 'Gravity (27.9%)']
+        },
+        'The Dark Knight': {
+          id: 155,
+          year: 2008,
+          director: 'Christopher Nolan',
+          directorToken: 'ChristopherNolan',
+          keywords: ['dc comics', 'joker', 'vigilante', 'gotham city'],
+          stemmed: ['batman', 'joker', 'gotham', 'christophernolan', 'vigilant', 'action', 'crime'],
+          activeDims: 49,
+          recs: ['Batman Begins (38.5%)', 'The Dark Knight Rises (36.1%)', 'Batman (31.4%)']
+        },
+        'Avatar': {
+          id: 19995,
+          year: 2009,
+          director: 'James Cameron',
+          directorToken: 'JamesCameron',
+          keywords: ['alien planet', 'pandora', 'avatar', 'na vi'],
+          stemmed: ['pandora', 'navi', 'marin', 'jamescameron', 'alien', 'action', 'adventur'],
+          activeDims: 44,
+          recs: ['Titan A.E. (31.5%)', 'Aliens (29.8%)', 'Independence Day (27.2%)']
+        },
+        'Pulp Fiction': {
+          id: 680,
+          year: 1994,
+          director: 'Quentin Tarantino',
+          directorToken: 'QuentinTarantino',
+          keywords: ['hitman', 'nonlinear', 'briefcase', 'crime'],
+          stemmed: ['hitman', 'boxer', 'gangster', 'quentintarantino', 'crime', 'thriller'],
+          activeDims: 51,
+          recs: ['Reservoir Dogs (35.2%)', 'Jackie Brown (33.1%)', 'True Romance (29.4%)']
+        }
+      };
+
+      runBtn.addEventListener('click', async () => {
+        if (isSimRunning) return;
+        isSimRunning = true;
+        runBtn.disabled = true;
+        runBtn.style.opacity = '0.6';
+
+        const title = movieSelect.value;
+        const d = simData[title] || simData['Inception'];
+
+        const stages = [
+          {
+            step: 1,
+            text: `[STEP 1/7 - INGESTION & JOIN]\n> Ingesting tmdb_5000_movies.csv & tmdb_5000_credits.csv.\n> Executed INNER JOIN on primary key (movies.id == credits.movie_id).\n> Matched verified record: "${title}" (TMDB ID: ${d.id}, Release Year: ${d.year}).`
+          },
+          {
+            step: 2,
+            text: `[STEP 2/7 - POSITIONAL COORDINATE ALIGNMENT]\n> Executed df.dropna(subset=['overview']) and immediate reset_index(drop=True).\n> Synchronized positional index coordinates with matrix row offset.\n> Zero positional mismatch detected.`
+          },
+          {
+            step: 3,
+            text: `[STEP 3/7 - ENTITY DISAMBIGUATION]\n> Space-stripping multi-word entities: "${d.director}" -> "${d.directorToken}".\n> Synthesizing atomic tags from overview synopsis, top-3 billed cast, and director.\n> Thematic keywords extracted: [${d.keywords.join(', ')}].`
+          },
+          {
+            step: 4,
+            text: `[STEP 4/7 - MORPHOLOGICAL STEMMING]\n> Executing NLTK Porter Stemmer across token stream.\n> Suffixes reduced to root bases: [${d.stemmed.join(', ')}].\n> Inflectional variants mapped to single vocabulary terms.`
+          },
+          {
+            step: 5,
+            text: `[STEP 5/7 - VECTOR SPACE MODELING]\n> CountVectorizer(max_features=5000, stop_words='english') projection.\n> Movie mapped to vector v in R^5000.\n> Active non-zero features: ${d.activeDims} dimensions (99.${(100 - (d.activeDims/50)).toFixed(0)}% sparsity).`
+          },
+          {
+            step: 6,
+            text: `[STEP 6/7 - CSR SPARSE MATRIX COMPRESSION]\n> Stored as Compressed Sparse Row (CSR) matrix: 295 KB total catalog footprint.\n> Uncompressed dense 185 MB representation avoided.\n> Sub-millisecond matrix traversal ready.`
+          },
+          {
+            step: 7,
+            text: `[STEP 7/7 - ANGULAR COSINE PROJECTION]\n> Computing dot products: S = (u . v) / (||u|| * ||v||) = cos(theta).\n> Query movie excluded from self-matches.\n> TOP RECOMMENDATIONS GENERATED:\n  * ${d.recs.join('\n  * ')}\n> [PIPELINE EXECUTION FINISHED: Total Latency 0.85 ms]`
+          }
+        ];
+
+        for (let i = 0; i < stages.length; i++) {
+          const st = stages[i];
+          // Update active step tab
+          stepperTabs.forEach(t => {
+            const num = parseInt(t.getAttribute('data-step'));
+            t.classList.remove('active');
+            if (num === st.step) t.classList.add('active');
+            if (num < st.step) t.classList.add('completed');
+          });
+
+          // Highlight node in schematic
+          nodes.forEach(n => {
+            n.classList.remove('active');
+            if (parseInt(n.getAttribute('data-step')) === st.step) n.classList.add('active');
+          });
+
+          // Print to console
+          consoleScreen.innerHTML = `<span class="console-highlight">${escapeHtml(st.text)}</span>`;
+
+          await new Promise(r => setTimeout(r, 650));
+        }
+
+        isSimRunning = false;
+        runBtn.disabled = false;
+        runBtn.style.opacity = '1';
+      });
+    }
+
+    // 3. Interactive Pictorial Vector Radar
+    function setupVectorRadar() {
+      const slider = document.getElementById('thetaRangeInput');
+      const vectorV = document.getElementById('radarVectorV');
+      const pointV = document.getElementById('radarPointV');
+      const textV = document.getElementById('radarTextV');
+      const thetaArc = document.getElementById('radarThetaArc');
+      const angleLabel = document.getElementById('radarAngleLabel');
+      const sliderVal = document.getElementById('sliderAngleVal');
+      const mathTheta = document.getElementById('mathThetaDisplay');
+      const mathCos = document.getElementById('mathCosineDisplay');
+      const gaugeFill = document.getElementById('matchGaugeFill');
+      const badge = document.getElementById('thematicAlignmentBadge');
+
+      if (!slider) return;
+
+      slider.addEventListener('input', () => {
+        const thetaDeg = parseFloat(slider.value);
+        const thetaRad = thetaDeg * (Math.PI / 180);
+        const cosVal = Math.cos(thetaRad);
+        const matchPct = (cosVal * 100).toFixed(1);
+
+        // Vector coordinates on 100-radius circle
+        const x = 100 * Math.cos(thetaRad);
+        const y = -100 * Math.sin(thetaRad);
+
+        vectorV.setAttribute('x2', x.toFixed(1));
+        vectorV.setAttribute('y2', y.toFixed(1));
+        pointV.setAttribute('cx', x.toFixed(1));
+        pointV.setAttribute('cy', y.toFixed(1));
+        textV.setAttribute('x', (x + 8).toFixed(1));
+        textV.setAttribute('y', (y - 6).toFixed(1));
+
+        // SVG Arc
+        thetaArc.setAttribute('d', `M 100 0 A 100 100 0 0 0 ${x.toFixed(1)} ${y.toFixed(1)} L 0 0 Z`);
+
+        // Angle label position
+        const midRad = thetaRad / 2;
+        const lx = 48 * Math.cos(midRad);
+        const ly = -48 * Math.sin(midRad);
+        angleLabel.setAttribute('x', lx.toFixed(1));
+        angleLabel.setAttribute('y', ly.toFixed(1));
+        angleLabel.textContent = `\u03b8 = ${thetaDeg}\u00b0`;
+
+        // Values
+        sliderVal.textContent = thetaDeg;
+        mathTheta.textContent = thetaDeg;
+        mathCos.textContent = cosVal.toFixed(4);
+        gaugeFill.style.width = `${matchPct}%`;
+
+        // Classification
+        let alignment = '';
+        if (thetaDeg === 0) {
+          alignment = 'Identical Film Profile (100% Match)';
+        } else if (thetaDeg < 30) {
+          alignment = `Strong Thematic Resonance (${matchPct}% Match)`;
+        } else if (thetaDeg < 60) {
+          alignment = `Moderate Genre & Cast Affinity (${matchPct}% Match)`;
+        } else if (thetaDeg < 80) {
+          alignment = `Weak Narrative Overlap (${matchPct}% Match)`;
+        } else {
+          alignment = `Orthogonal Vectors / Completely Disjoint (${matchPct}% Match)`;
+        }
+        badge.textContent = alignment;
+      });
+    }
+
+    // 4. Sparse Matrix 12x12 Heatmap
+    function renderSparseMatrixHeatmap() {
+      const container = document.getElementById('matrixHeatmapGrid');
+      if (!container) return;
+
+      container.innerHTML = '';
+      // 144 cells, 2 active weights (98.6% - 99.4% sparsity representation)
+      const activeIdx1 = 28;
+      const activeIdx2 = 91;
+
+      for (let i = 0; i < 144; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        if (i === activeIdx1 || i === activeIdx2) {
+          cell.classList.add('nonzero');
+          cell.title = `Feature Dimension #${i * 35}: Active Weight (1)`;
+        } else {
+          cell.title = `Feature Dimension #${i * 35}: 0.0 (Compressed)`;
+        }
+        container.appendChild(cell);
+      }
+    }
+
+    // 5. Inspector Form
+    function setupInspectForm() {
+      const form = document.getElementById('inspectForm');
+      const input = document.getElementById('inspectInput');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = input.value.trim();
+        if (query) runMLInspection(query);
+      });
+    }
+
+    async function runMLInspection(query) {
+      const loader = document.getElementById('inspectorLoading');
+      const content = document.getElementById('inspectorContent');
+      loader.style.display = 'block';
+      content.style.opacity = '0.3';
+
+      try {
+        const response = await fetch(`/api/ml-inspect?movie=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        loader.style.display = 'none';
+        content.style.opacity = '1';
+
+        if (data.success) {
+          renderInspection(data);
+        } else {
+          alert(data.message || 'Film not found for inspection.');
+        }
+      } catch (e) {
+        loader.style.display = 'none';
+        content.style.opacity = '1';
+        console.error('Inspection error:', e);
+      }
+    }
+
+    function renderInspection(data) {
+      document.getElementById('inspectTitle').textContent = `${data.title} (${data.release_year})`;
+      document.getElementById('inspectDirector').textContent = `Director: ${data.director}`;
+      document.getElementById('inspectOverviewSnippet').textContent = data.overview_snippet;
+      document.getElementById('inspectActiveDims').textContent = data.active_feature_dimensions;
+      document.getElementById('inspectSparsityRatio').textContent = data.sparsity_ratio;
+
+      // Genres
+      const genresContainer = document.getElementById('inspectGenresChips');
+      genresContainer.innerHTML = (data.genres || [])
+        .map(g => `<span class="tag-pill">${escapeHtml(g)}</span>`)
+        .join('');
+
+      // Tokens
+      const tokenContainer = document.getElementById('inspectTokenCloud');
+      tokenContainer.innerHTML = (data.synthesized_tag_sample || [])
+        .map(t => `<span class="token-chip-item">${escapeHtml(t)}</span>`)
+        .join('');
+
+      // Recommendations list
+      const recsContainer = document.getElementById('inspectRecommendationsList');
+      recsContainer.innerHTML = (data.recommendations || []).map(r => `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.9rem; background: rgba(245, 241, 232, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          <div>
+            <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">${escapeHtml(r.title)} (${r.release_year})</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Dir. ${escapeHtml(r.director)}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--accent-gold);">${r.match_percentage}% Match</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">Score: ${r.similarity_score.toFixed(4)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

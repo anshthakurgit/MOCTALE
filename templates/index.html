@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOCTALE — Discover Movies Beyond Your Taste</title>
+  <meta name="description" content="A machine learning content-based movie recommendation platform powered by natural language tag vectorization and cosine similarity on the TMDB corpus.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/static/images/poster_placeholder.svg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Cinematic Opening Sequence -->
+  <section id="cinematicIntro" class="cinematic-intro" aria-label="Cinematic Studio Opening">
+    <div class="intro-backdrop"></div>
+    <div class="intro-content">
+      <div class="intro-title-wrapper">
+        <h1 class="intro-cinema-title">CINEMA</h1>
+        <div class="intro-light-beam"></div>
+      </div>
+      <div class="intro-scroll-indicator" id="introScrollTrigger" role="button" tabindex="0" aria-label="Scroll to enter Moctale">
+        <span class="indicator-text">Scroll to Explore</span>
+        <svg class="indicator-arrow" viewBox="0 0 24 24" width="20" height="20">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+    <button id="skipIntroBtn" class="skip-intro-btn" aria-label="Enter directly">Enter Archive ↗</button>
+  </section>
+
+  <!-- Navigation Bar -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="/" class="brand-logo" aria-label="Moctale Home">
+        <span class="brand-mark">MOCTALE<span class="brand-dot">.</span></span>
+        <span class="brand-badge">ML Recommender</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#search" class="nav-link active">Search</a></li>
+          <li><a href="#featured" class="nav-link">Archive</a></li>
+          <li><a href="/ml-engine" class="nav-link">ML Engine</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="search">
+    <div class="container hero-content">
+      <span class="hero-eyebrow">Academic ML Engineering Project</span>
+      <h1 class="hero-title">Find Your Next Favourite Film<span class="brand-dot">.</span></h1>
+      <p class="hero-description">
+        Explore cinematic connections across 5,000 films. Our content-based machine learning engine analyzes plot narratives, directorial vision, genres, and cast composition to surface movies aligned with your taste.
+      </p>
+
+      <!-- Search Input Component -->
+      <div class="search-container">
+        <form id="searchForm" class="search-input-box" autocomplete="off">
+          <svg class="search-icon" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search any film (e.g. Inception, The Dark Knight, Avatar)..."
+            aria-label="Search movie title"
+            required
+          />
+          <button type="button" id="searchClearBtn" class="search-clear-btn" aria-label="Clear search">✕</button>
+          <button type="submit" class="search-action-btn">Discover</button>
+        </form>
+
+        <!-- Autocomplete Suggestions List -->
+        <ul id="autocompleteDropdown" class="autocomplete-dropdown" role="listbox"></ul>
+      </div>
+
+      <!-- Quick Search Chips -->
+      <div class="quick-tags-wrapper">
+        <span class="quick-label">Explore Masterpieces:</span>
+        <button class="chip-btn" data-title="Inception">Inception</button>
+        <button class="chip-btn" data-title="The Dark Knight">The Dark Knight</button>
+        <button class="chip-btn" data-title="Pulp Fiction">Pulp Fiction</button>
+        <button class="chip-btn" data-title="Interstellar">Interstellar</button>
+        <button class="chip-btn" data-title="Avatar">Avatar</button>
+        <button class="chip-btn" data-title="The Matrix">The Matrix</button>
+        <button class="chip-btn" data-title="Spirited Away">Spirited Away</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results & Recommendations Section -->
+  <section id="resultsSection" class="results-section">
+    <div class="container">
+      <!-- Active Movie Spotlight Banner -->
+      <div id="spotlightContainer"></div>
+
+      <!-- Status / Headline Message -->
+      <div id="searchStatusMessage"></div>
+
+      <!-- 5-Column Movie Grid -->
+      <div id="recommendationsGrid" class="movie-grid"></div>
+    </div>
+  </section>
+
+  <!-- Curated Featured Films Archive -->
+  <section class="featured-section" id="featured">
+    <div class="container">
+      <div class="section-headline-row">
+        <div>
+          <h2 class="section-title">Curated Cinema</h2>
+          <span class="section-subtitle">Verified Artwork from the Moctale Archive</span>
+        </div>
+      </div>
+      <div id="featuredGrid" class="featured-grid">
+        {% if archive_movies %}
+          {% for movie in archive_movies %}
+          <div class="movie-card" data-id="{{ movie.movie_id }}" data-title="{{ movie.title }}">
+            <div class="card-poster-wrapper">
+              <img 
+                src="{{ movie.poster_url or '/static/images/poster_placeholder.svg' }}" 
+                alt="{{ movie.title }}" 
+                class="card-poster-img"
+                loading="lazy"
+                onerror="this.src='/static/images/poster_placeholder.svg';"
+              />
+              {% if movie.vote_average and movie.vote_average > 0 %}
+              <div class="card-rating-badge">★ {{ "%.1f"|format(movie.vote_average) }}</div>
+              {% endif %}
+            </div>
+            <div class="card-body">
+              <h3 class="card-title" title="{{ movie.title }}">{{ movie.title }}</h3>
+              <div class="card-meta-line">
+                <span>{{ movie.release_year or 'N/A' }}</span>
+                {% if movie.runtime %}
+                <span>• {{ movie.runtime }}m</span>
+                {% endif %}
+                <span class="card-director">Dir. {{ movie.director or 'Unknown' }}</span>
+              </div>
+              <div class="card-genres">
+                {% for g in movie.genres[:2] %}
+                <span class="genre-chip">{{ g }}</span>
+                {% endfor %}
+              </div>
+              <div class="card-actions">
+                <button class="btn-secondary btn-explore" data-title="{{ movie.title }}">
+                  Explore Similar
+                </button>
+                <button class="btn-secondary btn-details" data-id="{{ movie.movie_id }}">
+                  Details
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Load More Action -->
+      <div class="archive-action-wrapper">
+        <button id="loadMoreArchiveBtn" class="btn-load-more">
+          <span class="btn-text">Load More Films</span>
+          <span class="btn-spinner" style="display: none;"></span>
+        </button>
+        <p id="archiveStatusMessage" class="archive-status-msg" style="display: none;"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works / Engine Section -->
+  <section class="engine-section" id="engine">
+    <div class="container">
+      <div class="engine-content">
+        <span class="engine-eyebrow">Technical Architecture</span>
+        <h2 class="engine-title">How Moctale Generates Recommendations</h2>
+        <p class="engine-lead">
+          Moctale uses a pure Content-Based Filtering (CBF) machine learning pipeline. Rather than relying on volatile collaborative user ratings, each film is represented as a high-dimensional mathematical vector extracted from its textual narrative and artistic metadata.
+        </p>
+      </div>
+
+      <div class="engine-cards-grid">
+        <div class="engine-card">
+          <div class="card-step-num">01</div>
+          <h3 class="card-step-title">Semantic Tag Synthesis</h3>
+          <p class="card-step-desc">
+            We extract plot overviews, genre designations, plot keywords, top-3 billed cast members, and the primary director. Entity names are normalized into atomic tokens (e.g. <code>ChristopherNolan</code>) to prevent lexical collisions.
+          </p>
+        </div>
+
+        <div class="engine-card">
+          <div class="card-step-num">02</div>
+          <h3 class="card-step-title">Stemming & Vectorization</h3>
+          <p class="card-step-desc">
+            Every token is morphologically stemmed using the Porter Stemmer algorithm to reduce inflected words to their root forms. We then construct a 5,000-dimensional bag-of-words representation using Scikit-Learn's CountVectorizer with English stop-word filtration.
+          </p>
+        </div>
+
+        <div class="engine-card">
+          <div class="card-step-num">03</div>
+          <h3 class="card-step-title">Cosine Similarity Projection</h3>
+          <p class="card-step-desc">
+            To rank film proximity, we measure the directional cosine angle between the query vector and all 4,800 corpus vectors. The resulting scalar product yields exact similarity scores, with the top 5 nearest neighbors returned in real time.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Movie Details Modal -->
+  <div id="movieModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <button id="modalCloseBtn" class="modal-close-btn" aria-label="Close details">✕</button>
+      <div id="modalBackdrop" class="modal-backdrop-header"></div>
+      
+      <div class="modal-content-grid">
+        <img id="modalPoster" src="/static/images/poster_placeholder.svg" alt="" class="modal-poster">
+        
+        <div class="modal-info">
+          <h2 id="modalTitle" class="modal-title"></h2>
+          <div id="modalTagline" class="modal-tagline"></div>
+          
+          <div class="modal-meta-bar">
+            <span id="modalYear"></span>
+            <span id="modalRating" style="color: #f5b942;"></span>
+            <span id="modalRuntime"></span>
+            <span id="modalDirector"></span>
+          </div>
+
+          <div id="modalGenres" class="spotlight-chips-row" style="margin-bottom: 1.25rem;"></div>
+
+          <p id="modalOverview" class="modal-synopsis"></p>
+
+          <span class="modal-subhead">Top Billed Cast</span>
+          <div id="modalCast" class="modal-cast-chips"></div>
+
+          <div class="modal-footer-actions">
+            <button id="modalExploreBtn" class="btn-primary">Explore Similar Films</button>
+            <a id="modalTmdbLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-outline">View on TMDB ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with TMDB Attribution -->
+  <footer class="site-footer" id="about">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Brand Info -->
+        <div class="footer-brand-col">
+          <a href="/" class="brand-logo">
+            <span class="brand-mark">MOCTALE<span class="brand-dot">.</span></span>
+          </a>
+          <p>
+            An engineering minor project demonstrating an end-to-end Machine Learning Content-Based Movie Recommendation System. Built with Python, Flask, Pandas, and Scikit-Learn.
+          </p>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div>
+          <h4 class="footer-heading">Navigation</h4>
+          <ul class="footer-nav-list">
+            <li><a href="#search">Movie Search</a></li>
+            <li><a href="#featured">Featured Archive</a></li>
+            <li><a href="/ml-engine">ML Engine & Architecture</a></li>
+            <li><a href="/health" target="_blank">System Health</a></li>
+          </ul>
+        </div>
+
+        <!-- TMDB Official Attribution -->
+        <div>
+          <h4 class="footer-heading">Attribution</h4>
+          <div class="tmdb-attribution-box">
+            <div class="tmdb-logo-wrapper">
+              <img src="/static/images/tmdb_logo.svg" alt="The Movie Database (TMDB) Logo" width="160" height="14">
+            </div>
+            <div class="tmdb-badge-stripes">
+              <div class="stripe-navy"></div>
+              <div class="stripe-blue"></div>
+              <div class="stripe-green"></div>
+            </div>
+            <p class="tmdb-legal-disclaimer">
+              This product uses the TMDB API but is not endorsed or certified by TMDB. Movie posters, backdrop imagery, and metadata are provided courtesy of The Movie Database.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="footer-bottom-bar">
+        <span>&copy; 2026 Moctale Movie Discovery Platform. All rights reserved.</span>
+        <span>Engineered with Python 3.13, Flask & Scikit-Learn</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript Bundle -->
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

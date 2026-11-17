@@ -1,24 +1,36 @@
-@"
+# Python
 __pycache__/
 *.py[cod]
-*`$py.class
+*$py.class
 *.so
 .Python
 build/
 dist/
 *.egg-info/
 .ipynb_checkpoints/
+
+# Virtual Environments
 venv/
 env/
 .venv/
 ENV/
+
+# Environment Variables & Secrets
 .env
 *.env
+!.env.example
+
+# Model Artifacts & Large Temp Files
 *.pkl
 *.pickle
+*.npz
+
+# OS specific
 .DS_Store
 Thumbs.db
+
+# IDEs
 .vscode/
 .idea/
-.streamlit/
-"@ | Out-File -FilePath .gitignore -Encoding utf8
+
+!artifacts/
